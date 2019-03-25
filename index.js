@@ -59,9 +59,48 @@ app.post("/command/greet", (req, res) => {
   });
 });
 
+app.post("/command/make", async (req, res) => {
+  var dialogResponse = await webBotClient.dialog.open({
+    trigger_id: req.body.trigger_id,
+    dialog: {
+      callback_id: "make",
+      title: "Make a thing",
+      elements: [
+        {
+          type: "text",
+          label: "Name",
+          name: "mk_name"
+        },
+        {
+          label: "Additional information",
+          name: "mk_comment",
+          type: "textarea",
+          hint: "Provide additional information if needed."
+        },
+        {
+          label: "Linked User",
+          name: "mk_user",
+          type: "select",
+          data_source: "users"
+        }
+      ]
+    }
+  });
+  res.send(JSON.stringify(dialogResponse, null, "\n\t"));
+});
+
 slackInteractions.action("greet_response", (payload, respond) => {
   console.log("GREET ACTION", payload);
   return `we have acknowledged your opinion of ${payload.actions[0].value}`;
+});
+
+slackInteractions.action("make", async (payload, respond) => {
+  try {
+    console.log("MAKE ACTION", payload, respond);
+    await respond({ text: JSON.stringify(payload.submission) });
+  } catch (e) {
+    console.error("There was an error");
+  }
 });
 
 // Attach listeners to events by Slack Event "type". See: https://api.slack.com/events/message.im
